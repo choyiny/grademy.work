@@ -30,4 +30,4 @@ layout: default
 </div> <!-- /container -->
 
 {% include scripts.html %}
-<script src="{{site.url}}/static/js/rubric.js"></script>
+<script src="{{/static/js/rubric.js" | absolute_url}}></script>
