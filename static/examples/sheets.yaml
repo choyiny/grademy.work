@@ -1,0 +1,146 @@
+- caption: "Student #1" 
+  write: 
+    - 'ta1@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's1@example.com'
+
+- caption: "Student #2" 
+  write: 
+    - 'ta1@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read:  
+    - 's2@example.com'
+
+- caption: "Student #3"
+  write: 
+    - 'ta2@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's3@example.com'
+
+- caption: "Student #4"
+  write: 
+    - 'ta2@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's4@example.com'
+
+- caption: 'Team #1'
+  write: 
+    - 'ta3@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's5@example.com'
+    - 's6@example.com'
+
+- caption: 'Team #2'
+  write: 
+    - 'ta3@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's7@example.com'
+    - 's8@example.com'
+
+- caption: 'Team #3'
+  write: 
+    - 'ta4@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's9@example.com'
+    - 's10@example.com'
+
+- caption: 'Team #4'
+  write: 
+    - 'ta4@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's11@example.com'
+    - 's12@example.com'
+  
+- caption: "Team #5"
+  write: 
+    - 'ta5@example.com'
+    - 'ta6@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's13@example.com'
+
+- caption: 'Team #6'
+  write: 
+    - 'ta6@example.com'
+    - 'ta7@example.com'
+  audit: 
+      - 'ta1@example.com'
+      - 'ta2@example.com'
+      - 'ta3@example.com'
+      - 'ta4@example.com'
+      - 'ta5@example.com'
+      - 'ta6@example.com'
+      - 'ta7@example.com'
+  read: 
+    - 's14@example.com'
+    - 's15@example.com'
