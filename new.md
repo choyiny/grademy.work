@@ -24,7 +24,7 @@ layout: default
 </div> <!-- /container -->
 
 {% include scripts.html %}
-<script src="{{/static/node_modules/esprima/dist/esprima.js" | absolute_url}}></script>
-<script src="{{/static/node_modules/js-yaml/dist/js-yaml.min.js" | absolute_url}}></script>
-<script src="{{/static/js/login-required.js" | absolute_url}}></script>
-<script src="{{/static/js/new.js" | absolute_url}}></script>
+<script src="{{site.baseurl}}/static/node_modules/esprima/dist/esprima.js"></script>
+<script src="{{site.baseurl}}/static/node_modules/js-yaml/dist/js-yaml.min.js"></script>
+<script src="{{site.baseurl}}/static/js/login-required.js"></script>
+<script src="{{site.baseurl}}/static/js/new.js"></script>
