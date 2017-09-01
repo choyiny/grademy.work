@@ -19,7 +19,7 @@ function addNewScheme (e){
         sheet.read.forEach(assign(i, 'read'));
         sheet.audit.forEach(assign(i, 'audit'));
         sheet.write.forEach(assign(i, 'write'));
-        return {caption: sheet.caption};
+        return {sheet: sheet.sheet};
     });
     var scheme = {
         privileges: privileges,

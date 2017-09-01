@@ -5,31 +5,28 @@ var observers = [];
 
 var templates = {};
 
-// function getTotalPoints(rubricID){
-//     return [].reduce.call(document.querySelectorAll('.points-form '), function(acc, e){
-//         return acc + parseInt()
-//     }, 0);
-// };
-
 templates.Points = function(rubricID, question, changeFn, updateFn, active){
     var disabled = (active)? '' : 'disabled';
     var form = document.createElement('form');
-    form.className = "form-inline points-question";
+    form.className = "form-inline";
     form.innerHTML = `<div class="form-group">
-                        <input type="text" class="form-control" value="" ${disabled}/>
-                        <label>${question.max}</label>
+                        <input type="text" class="form-control score-input" value="" ${disabled}/>
+                        <label>/ <span class="max-input">${question.max}</span></label>
                       </div>`;
     // on change
     if (changeFn){   
         form.getElementsByTagName('input')[0].addEventListener("input", function(e){
             changeFn(form.getElementsByTagName('input')[0].value);
+             if (form.parentElement) form.parentElement.parentElement.parentElement.updateTotalScore();
         }, true);
     }
     // on update
     if (updateFn){
         updateFn(function(data){
+            if (form.parentElement) console.log();
             data = (data)? data : '';
             form.getElementsByTagName('input')[0].value = data;
+            if (form.parentElement) form.parentElement.parentElement.parentElement.updateTotalScore();
         });
     }
     return form;
@@ -38,7 +35,6 @@ templates.Points = function(rubricID, question, changeFn, updateFn, active){
 templates.SelectAll = function(rubricID, question, changeFn, updateFn, active){
     var disabled = (active)? '' : 'disabled';
     var form = document.createElement('form');
-    form.className = "selectall-question";
     form.innerHTML = question.options.map(function(option, i){
         return `<div class="checkbox ${disabled}">
                   <label>
@@ -75,7 +71,6 @@ templates.SelectAll = function(rubricID, question, changeFn, updateFn, active){
 templates.SelectOne = function(rubricID, question, changeFn, updateFn, active){
     var disabled = (active)? '' : 'disabled';
     var form = document.createElement('form');
-    form.className = "selectone-question";
     form.innerHTML = question.options.map(function(option, i){
         return `<div class="radio">
                   <label>
@@ -107,8 +102,7 @@ templates.SelectOne = function(rubricID, question, changeFn, updateFn, active){
 templates.Comment = function(rubricID, question, changeFn, updateFn, active){
     var disabled = (active)? '' : 'disabled';
     var form = document.createElement('form');
-    form.className = "comment-question";
-    form.innerHTML = `<textarea class="form-control" rows="5" ${disabled}></textarea>`
+    form.innerHTML = `<textarea class="form-control" rows="5" ${disabled}></textarea>`;
     // on change
     if (changeFn){
         form.getElementsByTagName('textarea')[0].addEventListener("input", function(e){
@@ -225,7 +219,7 @@ function generateData(user){
                                     try{
                                         f(data.rubrics[rubricID].questions[i]);
                                     }catch(e){
-                                        f(null)
+                                        f(null);
                                     }
                                 });
                             };
@@ -286,7 +280,7 @@ function sheetView(data){
         li.innerHTML = `<a href="#sheet${sheetID}"></a><ul class="nav nav-stacked"></ul>`;
         document.getElementById("sidebar").appendChild(li);
         sheet.observer.addListener(function(data){
-            if (data && 'caption' in data) li.getElementsByTagName('a')[0].innerHTML = data.caption;
+            if (data && 'sheet' in data) li.getElementsByTagName('a')[0].innerHTML = data.sheet;
         });
         // main
         var section = document.createElement('section');
@@ -294,8 +288,24 @@ function sheetView(data){
         section.id = `sheet${sheetID}`;
         var h1 = document.createElement('h1');
         sheet.observer.addListener(function(data){
-            if (data && 'caption' in data) h1.innerHTML = data.caption;
+            if (data && 'sheet' in data) h1.innerHTML = data.sheet;
         });
+        section.appendChild(h1);
+        var totalScore = document.createElement('div');
+        totalScore.className = 'total-score';
+        totalScore.innerHTML = `Total : <span class='student-score'>0</span> / <span class='max-score'>0</span></div>`;
+        section.appendChild(totalScore);
+        section.updateTotalScore = function(){
+            var self = this;
+            var score = [].reduce.call(self.querySelectorAll('.score-input'), function(acc, e){
+                return acc + parseInt(e.value? e.value : 0);
+            }, 0);
+            self.getElementsByClassName('student-score')[0].innerHTML = score;
+            var max = [].reduce.call(self.querySelectorAll('.max-input'), function(acc, e){
+                return acc + parseInt(e.innerHTML? e.innerHTML : 0);
+            }, 0);
+            self.getElementsByClassName('max-score')[0].innerHTML = max;
+        };
         Object.keys(sheet.rubrics).map(function(rubricID){
             var rubric = sheet.rubrics[rubricID];
             // nav
@@ -313,8 +323,10 @@ function sheetView(data){
                 questionElement.appendChild(question);
                 rubricElement.appendChild(questionElement);
             });
+            
             section.appendChild(rubricElement);
-        })
+        });
+        section.updateTotalScore();
         document.getElementById("main-panel").appendChild(section);
     });
 };

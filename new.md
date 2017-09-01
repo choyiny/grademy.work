@@ -8,15 +8,15 @@ layout: default
     <form id="new-scheme-form">
         <button type="submit" class="btn btn-success">Submit</button>
         <div class="form-group">
-           <label for="scheme-name">Name</label>
+           <label for="scheme-name">Grading scheme name</label>
            <input id="scheme-name" type="text" class="form-control"/>
          </div>
         <div class="form-group">
-           <label for="scheme-rubrics">Rubrics</label>
+           <label for="scheme-rubrics">Grading rubrics</label>
            <textarea id="scheme-rubrics" class="form-control" rows="15"></textarea>
          </div>
         <div class="form-group">
-           <label for="scheme-sheets">Sheets</label>
+           <label for="scheme-sheets">Grading sheets</label>
            <textarea id="scheme-sheets" class="form-control" rows="15"></textarea>
          </div>
     </form>
