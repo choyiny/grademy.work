@@ -367,9 +367,9 @@ function resetViewButton(){
     });
 };
 
-function resetDownloadButton(){
-    $('#download').hide();
-}
+// function resetDownloadButton(){
+//     $('#download').hide();
+// }
 
 function updateView(){
     // reset alerts
@@ -379,7 +379,7 @@ function updateView(){
     // reset view button
     resetViewButton();
     // reset download button
-    resetDownloadButton();
+    // resetDownloadButton();
     if (!data.user){
         showAlert('main-warning');
         views.rubricOnlyView();
@@ -388,7 +388,7 @@ function updateView(){
             showAlert('main-error');
             views.rubricOnlyView();
         }else{
-            $('#download').show();
+            // $('#download').show();
             if (Object.keys(data.sheets).length > 1){
                 $('#viewToggle').show();
             }

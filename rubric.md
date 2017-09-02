@@ -15,9 +15,9 @@ layout: default
                       <input type="radio" name="options" value="compareView" autocomplete="off"> Compare View
                   </label>
               </div>
-              <div class="btn-group sub-btn-group pull-right optional" id="download"> 
+              <!--div class="btn-group sub-btn-group pull-right optional" id="download"> 
                   <div id="download-button"></div>
-              </div>
+              </div-->
       </div>
 </nav>
 
