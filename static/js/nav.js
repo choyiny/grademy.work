@@ -47,11 +47,12 @@ function signUp (e) {
 function init() {
   firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
+        document.getElementById('userEmail').innerHTML = user.email;
         document.getElementById('show-modal-button').style.display = "none";
-        document.getElementById('sign-out-button').style.display = "inline-block";
+        document.getElementById('user-button').style.display = "inline-block";
     } else {
         document.getElementById('show-modal-button').style.display = "inline-block";
-        document.getElementById('sign-out-button').style.display = "none";
+        document.getElementById('user-button').style.display = "none";
     }
   });
   document.getElementById('sign-in-button').addEventListener('click', signIn);

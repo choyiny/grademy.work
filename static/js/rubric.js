@@ -1,9 +1,9 @@
-((function(id){
+((function(){
 "use strict";
 
-var observers = [];
-
 var templates = {};
+
+var scoreUpdate = new CustomEvent("score-update", {bubbles: true});
 
 templates.Points = function(rubricID, question, changeFn, updateFn, active){
     var disabled = (active)? '' : 'disabled';
@@ -17,16 +17,15 @@ templates.Points = function(rubricID, question, changeFn, updateFn, active){
     if (changeFn){   
         form.getElementsByTagName('input')[0].addEventListener("input", function(e){
             changeFn(form.getElementsByTagName('input')[0].value);
-             if (form.parentElement) form.parentElement.parentElement.parentElement.updateTotalScore();
+            form.dispatchEvent(scoreUpdate);
         }, true);
     }
     // on update
     if (updateFn){
         updateFn(function(data){
-            if (form.parentElement) console.log();
             data = (data)? data : '';
             form.getElementsByTagName('input')[0].value = data;
-            if (form.parentElement) form.parentElement.parentElement.parentElement.updateTotalScore();
+            form.dispatchEvent(scoreUpdate);
         });
     }
     return form;
@@ -117,11 +116,46 @@ templates.Comment = function(rubricID, question, changeFn, updateFn, active){
         });
     }
     return form;
+};
+
+var SheetObserver = function(schemeID, sheetID){
+    var self = this;
+    self.sheetID = sheetID;
+    self.listeners = [];
+    self.value = null;
+    firebase.database().ref('schemes/' + schemeID + '/sheets/' + sheetID).on('value', function(snapshot){
+        self.value = snapshot.val();
+        self.listeners.map(function(f){
+            f(self.value); 
+        });
+    });
+};
+
+SheetObserver.prototype.addListener = function(f){
+    this.listeners.push(f);
+    f(this.value);
+};
+
+var data = {};
+
+function getSchemeID(){
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    };
+    return new Promise(function(resolve, reject){
+        resolve(getParameterByName('id'));
+    });
 }
 
 function getRubrics(){
     return new Promise(function(resolve, reject){
-        firebase.database().ref('schemes/' + id + '/rubrics').once('value').then(function(snapshot){
+        firebase.database().ref('schemes/' + data.schemeID + '/rubrics').once('value').then(function(snapshot){
             var result = {};
             snapshot.forEach(function(child) {
                 result[child.key] = child.val();
@@ -133,23 +167,9 @@ function getRubrics(){
     });
 };
 
-function getPrivileges(user){
-    return new Promise(function(resolve, reject){
-        firebase.database().ref('schemes/' + id + '/privileges/' + user.email.replace(/\./g, '%2E')).once('value').then(function(snapshot){
-            var result = {};
-            snapshot.forEach(function(child) {
-                result[child.key] = child.val();
-            });
-            resolve(result);
-        }).catch(function(error){
-            console.log(error);
-        });
-    });
-}
-
 function getReleased(){
     return new Promise(function(resolve, reject){
-        firebase.database().ref('schemes/' + id + '/released').once('value').then(function(snapshot){
+        firebase.database().ref('schemes/' + data.schemeID + '/released').once('value').then(function(snapshot){
             resolve(snapshot.val());
         }).catch(function(error){
             console.log(error);
@@ -157,120 +177,69 @@ function getReleased(){
     });
 }
 
-function getSheetIDs(privileges, released){
+function getPrivileges(){
     return new Promise(function(resolve, reject){
-        var admin = ('admin' in privileges)? privileges['admin'] : false;
+        firebase.database().ref('schemes/' + data.schemeID + '/privileges/' + data.user.email.replace(/\./g, '%2E')).once('value').then(function(snapshot){
+            var result = {};
+            snapshot.forEach(function(child) {
+                result[child.key] = child.val();
+            });
+            resolve(result);
+        }).catch(function(error){
+            console.log(error);
+        });
+    });
+}
+
+function getSheetIDs(){
+    return new Promise(function(resolve, reject){
+        var admin = ('admin' in data.privileges)? data.privileges['admin'] : false;
         if (admin){
-            firebase.database().ref('schemes/' + id + '/sheets').once('value').then(function(snapshot){
+            firebase.database().ref('schemes/' + data.schemeID + '/sheets').once('value').then(function(snapshot){
                 resolve(Object.keys(snapshot.val()));
             }).catch(function(error){
                 console.log(error);
             });
         }
         else{
-            var searchedPrivileges = (released)? ['write','audit','read'] : ['write','audit'];
-            var sheetIDs = Object.keys(privileges).filter(function(k){
-                return (['write','audit','read'].indexOf(privileges[k])>-1);
+            var searchedPrivileges = (data.released)? ['write','audit','read'] : ['write','audit'];
+            var sheetIDs = Object.keys(data.privileges).filter(function(k){
+                return (['write','audit','read'].indexOf(data.privileges[k])>-1);
             });
             resolve(sheetIDs);
         }
     });
 }
 
-var SheetObserver = function(sheetID){
-    var self = this;
-    self.sheetID = sheetID;
-    self.listeners = [];
-    self.data = null;
-    firebase.database().ref('schemes/' + id + '/sheets/' + sheetID).on('value', function(snapshot){
-        self.data = snapshot.val();
-        self.listeners.map(function(f){
-            f(self.data); 
-        });
-    });
-};
+var views = {};
 
-SheetObserver.prototype.update = function(rubricID, questionID, data){
-    firebase.database().ref('schemes/' + id + '/sheets/' + sheetID + '/questions/' + questionID).set(data);
-};
-
-SheetObserver.prototype.addListener = function(f){
-    this.listeners.push(f);
-    f(this.data);
-};
-
-function generateData(user){
-    return new Promise(function(resolve, reject){
-        Promise.all([getRubrics(), getReleased(), getPrivileges(user)]).then(function(l){
-            var rubrics = l[0];
-            var released = l[1];
-            var privileges = l[2];
-            getSheetIDs(privileges, released).then(function(sheetIDs){
-                var sheets = {};
-                sheetIDs.forEach(function(sheetID){
-                    sheets[sheetID] = {rubrics: {}, observer: new SheetObserver(sheetID)};
-                    Object.keys(rubrics).forEach(function(rubricID){
-                        var rubric = rubrics[rubricID];
-                        sheets[sheetID].rubrics[rubricID] = {caption: rubric.rubric, questions: []};
-                        rubric.questions.forEach(function(question, i){
-                            var active = (privileges[sheetID] === 'write' || privileges['admin'])
-                            var updateFn = function(f){
-                                sheets[sheetID].observer.addListener(function(data){
-                                    try{
-                                        f(data.rubrics[rubricID].questions[i]);
-                                    }catch(e){
-                                        f(null);
-                                    }
-                                });
-                            };
-                            var changeFn = function(data){
-                                console.log('update-sent', data);
-                                firebase.database().ref('schemes/' + id + '/sheets/' + sheetID + '/rubrics/' + rubricID + '/questions/' + i).set(data);
-                            };
-                            sheets[sheetID].rubrics[rubricID].questions[i] = templates[question.type](rubricID, question, changeFn, updateFn, active);
-                        });
-                    });
-                });
-                resolve({
-                    rubrics: rubrics,
-                    released: released,
-                    privileges: privileges,
-                    sheets: sheets
-                });
-            });
-        });
-    })
-};
-
-function nonAuthenticatedView(){
+views.rubricOnlyView = function(){
     document.getElementById("main-panel"). innerHTML = '';
     document.getElementById("sidebar"). innerHTML = '';
-    getRubrics().then(function(rubrics){
-        Object.keys(rubrics).map(function(rubricID){
-            var rubric = rubrics[rubricID];
-            // nav
-            var li = document.createElement('li');
-            li.innerHTML = `<a href="#rubric${rubricID}">${rubric.rubric}</a>`;
-            document.getElementById("sidebar").appendChild(li);
-            // main-panel
-            var section = document.createElement('section');
-            section.className = 'group';
-            section.id = `rubric${rubricID}`;
-            var rubricElement = document.createElement('div');
-            rubricElement.innerHTML = `<h2>${rubric.rubric}</h2>`;
-            rubric.questions.forEach(function(question){
-                var questionElement = document.createElement('div');
-                questionElement.innerHTML = `<h3>${question.caption}</h3>`;
-                questionElement.appendChild(templates[question.type](rubricID, question, null, null, false));
-                rubricElement.appendChild(questionElement);
-            });
-            section.appendChild(rubricElement);
-            document.getElementById("main-panel").appendChild(section);
+    Object.keys(data.rubrics).map(function(rubricID){
+        var rubric = data.rubrics[rubricID];
+        // nav
+        var li = document.createElement('li');
+        li.innerHTML = `<a href="#rubric${rubricID}">${rubric.rubric}</a>`;
+        document.getElementById("sidebar").appendChild(li);
+        // main-panel
+        var section = document.createElement('section');
+        section.className = 'group';
+        section.id = `rubric${rubricID}`;
+        var rubricElement = document.createElement('div');
+        rubricElement.innerHTML = `<h2>${rubric.rubric}</h2>`;
+        rubric.questions.forEach(function(question){
+            var questionElement = document.createElement('div');
+            questionElement.innerHTML = `<h3>${question.caption}</h3>`;
+            questionElement.appendChild(templates[question.type](rubricID, question, null, null, false));
+            rubricElement.appendChild(questionElement);
         });
+        section.appendChild(rubricElement);
+        document.getElementById("main-panel").appendChild(section);
     });
 };
 
-function sheetView(data){
+views.userView = function (){
     document.getElementById("main-panel"). innerHTML = '';
     document.getElementById("sidebar"). innerHTML = '';
     Object.keys(data.sheets).map(function(sheetID){
@@ -279,16 +248,16 @@ function sheetView(data){
         var li = document.createElement('li');
         li.innerHTML = `<a href="#sheet${sheetID}"></a><ul class="nav nav-stacked"></ul>`;
         document.getElementById("sidebar").appendChild(li);
-        sheet.observer.addListener(function(data){
-            if (data && 'sheet' in data) li.getElementsByTagName('a')[0].innerHTML = data.sheet;
+        sheet.observer.addListener(function(value){
+            if (value && 'sheet' in value) li.getElementsByTagName('a')[0].innerHTML = value.sheet;
         });
         // main
         var section = document.createElement('section');
         section.className = 'group';
         section.id = `sheet${sheetID}`;
         var h1 = document.createElement('h1');
-        sheet.observer.addListener(function(data){
-            if (data && 'sheet' in data) h1.innerHTML = data.sheet;
+        sheet.observer.addListener(function(value){
+            if (value && 'sheet' in value) h1.innerHTML = value.sheet;
         });
         section.appendChild(h1);
         var totalScore = document.createElement('div');
@@ -306,6 +275,7 @@ function sheetView(data){
             }, 0);
             self.getElementsByClassName('max-score')[0].innerHTML = max;
         };
+        section.addEventListener('score-update', section.updateTotalScore);
         Object.keys(sheet.rubrics).map(function(rubricID){
             var rubric = sheet.rubrics[rubricID];
             // nav
@@ -323,7 +293,6 @@ function sheetView(data){
                 questionElement.appendChild(question);
                 rubricElement.appendChild(questionElement);
             });
-            
             section.appendChild(rubricElement);
         });
         section.updateTotalScore();
@@ -331,7 +300,7 @@ function sheetView(data){
     });
 };
 
-function rubricView(data){
+views.compareView = function (){
     document.getElementById("main-panel"). innerHTML = '';
     document.getElementById("sidebar"). innerHTML = '';
     Object.keys(data.rubrics).forEach(function(rubricID){
@@ -344,7 +313,6 @@ function rubricView(data){
         var section = document.createElement('section');
         section.className = 'group';
         section.id = `rubric${rubricID}`;
-        
         var rubricElement = document.createElement('div');
         rubricElement.innerHTML = `<h2>${rubric.rubric}</h2>`;
         rubric.questions.forEach(function(question, i){
@@ -354,8 +322,8 @@ function rubricView(data){
                 var sheet = data.sheets[sheetID];
                 var sheetElement = document.createElement('div');
                 var h4 = document.createElement('h4');
-                sheet.observer.addListener(function(data){
-                    if (data && 'caption' in data) h4.innerHTML = data.caption;
+                sheet.observer.addListener(function(value){
+                    if (value && 'sheet' in value) h4.innerHTML = value.sheet;
                 });
                 sheetElement.appendChild(h4);
                 sheetElement.appendChild(sheet.rubrics[rubricID].questions[i]);
@@ -368,68 +336,121 @@ function rubricView(data){
     })
 };
 
-function activateCompareButton(data){
-    $(".bs-docs-sidebar > .nav").css("margin-top", 50);
-    $('#view-toggle').show().click(function() {
-        $(this).toggleClass('btn-primary').toggleClass('btn-default').toggleClass('active');
-        var compare = $(this).hasClass('active');
-        if (compare){
-            rubricView(data);
-        }else{
-            sheetView(data);
-        }
+function resetAlerts(){
+    [].map.call(document.getElementsByClassName('alert'), function(e){
+        e.style.display = "none";
     });
 }
 
-function init() {
-  // var mode = getParameterByName('mode');
-  firebase.auth().onAuthStateChanged(function(user) {
-    var alerts = document.getElementsByClassName('alert');
-    for(var i=0; i < alerts.length; i++){
-            alerts[i].style.display = "none";
-    }
-    if (!user) {
-        document.getElementById('main-warning').style.display = 'inline-block';
-        nonAuthenticatedView();
-    } else {
-        generateData(user).then(function(data){
-            if (Object.keys(data.sheets).length === 0){
-                document.getElementById('main-error').style.display = 'inline-block';
-                nonAuthenticatedView();
-            }else{
-                if (Object.keys(data.sheets).length > 1) activateCompareButton(data);
-                if (data.released){
-                     document.getElementById('main-success').style.display = 'inline-block';
-                }else{
-                     document.getElementById('main-info').style.display = 'inline-block';
-                }
-                sheetView(data);
-            }
-        });
-    }
-  });
-  $('body').scrollspy({
-      target: '.bs-docs-sidebar',
-      offset: 40
-  });
-  
+function showAlert(type){
+    resetAlerts();
+    document.getElementById(type).style.display = 'inline-block';
 }
 
-window.addEventListener("load", init, true);
+function resetReleaseButton(){
+    $('#release-toggle  > input').prop( "checked", data.released);
+    if (data.privileges && data.privileges['admin']){
+        $('#release-toggle > input').prop("disabled", false).click(function(e){
+            data.released = $('#release-toggle > input').is(":checked");
+            firebase.database().ref('schemes/' + data.schemeID + '/released').set(data.released);
+        });
+    }else{
+        $('#release-toggle > input').prop("disabled", true);
+    }
+}
+
+function resetViewButton(){
+    $('#viewToggle').hide();
+    $('.view input[type=radio]:radio[name="userView"]').prop('checked',true);
+    $('.view input[type=radio]').on('change', function() {
+        views[this.value]();
+    });
+};
+
+function resetDownloadButton(){
+    $('#download').hide();
+}
+
+function updateView(){
+    // reset alerts
+    resetAlerts();
+    // reset release button
+    resetReleaseButton();
+    // reset view button
+    resetViewButton();
+    // reset download button
+    resetDownloadButton();
+    if (!data.user){
+        showAlert('main-warning');
+        views.rubricOnlyView();
+    }else{
+        if (Object.keys(data.sheets).length == 0){
+            showAlert('main-error');
+            views.rubricOnlyView();
+        }else{
+            $('#download').show();
+            if (Object.keys(data.sheets).length > 1){
+                $('#viewToggle').show();
+            }
+            views.userView();
+        }
+    }
+};
+
+function init(){
+    getSchemeID().then(function(schemeID){
+        data.schemeID = schemeID;
+        Promise.all([getRubrics(), getReleased()]).then(function(l){
+            data.rubrics = l[0];
+            data.released = l[1];
+            firebase.auth().onAuthStateChanged(function(user) {
+                data.user = user;
+                data.privileges = null;
+                data.sheets = null;
+                if (!user) updateView();
+                else getPrivileges().then(function(privileges){
+                    data.privileges = privileges;
+                    getSheetIDs().then(function(sheetIDs){
+                        data.sheets = {};
+                        sheetIDs.forEach(function(sheetID){
+                            data.sheets[sheetID] = {rubrics: {}, observer: new SheetObserver(data.schemeID, sheetID)};
+                            Object.keys(data.rubrics).forEach(function(rubricID){
+                                var rubric = data.rubrics[rubricID];
+                                data.sheets[sheetID].rubrics[rubricID] = {caption: rubric.rubric, questions: []};
+                                rubric.questions.forEach(function(question, i){
+                                    var active = (data.privileges[sheetID] === 'write' || data.privileges['admin'])
+                                    var updateFn = function(f){
+                                        data.sheets[sheetID].observer.addListener(function(value){
+                                            try{
+                                                f(value.rubrics[rubricID].questions[i]);
+                                            }catch(e){
+                                                f(null);
+                                            }
+                                        });
+                                    };
+                                    var changeFn = function(value){
+                                        console.log('update-sent', value);
+                                        firebase.database().ref('schemes/' + data.schemeID + '/sheets/' + sheetID + '/rubrics/' + rubricID + '/questions/' + i).set(value);
+                                    };
+                                    data.sheets[sheetID].rubrics[rubricID].questions[i] = templates[question.type](rubricID, question, changeFn, updateFn, active);
+                                });
+                            });
+                        });
+                        updateView();
+                    });
+                });
+            });
+        });
+    });
+}
+
+window.addEventListener("load", function(){
+    init();
+    $('body').scrollspy({
+        target: '.bs-docs-sidebar',
+        offset: 40
+    });
+}, true);
     
-})(
-   ((function(){
-       // https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-       function getParameterByName(name, url) {
-           if (!url) url = window.location.href;
-           name = name.replace(/[\[\]]/g, "\\$&");
-           var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-               results = regex.exec(url);
-           if (!results) return null;
-           if (!results[2]) return '';
-           return decodeURIComponent(results[2].replace(/\+/g, " "));
-       };
-       return getParameterByName('id');
-   })())
-));
+})());
 
