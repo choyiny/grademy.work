@@ -37,7 +37,7 @@ function addNewScheme (e){
       }else{
           db.ref('schemes/' + id).set(scheme).then(function(res){
                 document.getElementById('new-error').style.display = "none";
-                window.location = "../rubric/?id=" + id;
+                window.location = "../rubric?id=" + id;
             }).catch(function(error) {
                 document.getElementById('new-error').innerHTML = '[' + error.code + '] ' + error.message;
                 document.getElementById('new-error').style.display = "block";
