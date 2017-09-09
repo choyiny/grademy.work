@@ -25,7 +25,7 @@ function addNewScheme (e){
         privileges: privileges,
         rubrics: rubrics,
         sheets: s,
-        released: true
+        released: false
     };
     // create if it does not already exists
     var db = firebase.database();
