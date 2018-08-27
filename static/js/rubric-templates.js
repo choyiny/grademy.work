@@ -1,6 +1,8 @@
 var templates = (function(){
     
     var templates = {};
+    
+    var scoreUpdate = new CustomEvent("score-update", {bubbles: true});
 
     templates.Points = function(rubricID, question, changeFn, updateFn, active){
         var disabled = (active)? '' : 'disabled';
@@ -14,7 +16,7 @@ var templates = (function(){
         if (changeFn){   
             form.querySelector('input').addEventListener("input", function(e){
                 changeFn(form.querySelector('input').value);
-                // form.dispatchEvent(scoreUpdate);
+                form.dispatchEvent(scoreUpdate);
             }, true);
         }
         // on update
@@ -22,7 +24,7 @@ var templates = (function(){
             updateFn(function(data){
                 data = (data)? data : '';
                 form.querySelector('input').value = data;
-                // form.dispatchEvent(scoreUpdate);
+                form.dispatchEvent(scoreUpdate);
             });
         }
         return form;

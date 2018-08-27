@@ -124,14 +124,8 @@ views.compareView = function (rubrics, sheets){
 
 var data = null;
 
-var showError = function(type, message){
-    var e =  document.querySelector('#alert-panel .alert-danger');
-    e.classList.remove("hidden");
-    e.innerHTML = message;
-};
-
 var showAlert = function(type, message){
-    var e =  document.querySelector('#alert-panel .alert-' + type);
+    var e =  document.querySelector('#rubric-alert-panel .alert-' + type);
     e.classList.remove("hidden");
     e.innerHTML = message;
 };
@@ -139,7 +133,7 @@ var showAlert = function(type, message){
 var updateView = function(){
     document.querySelector("#sidebar").innerHTML = '';
     document.querySelector("#main-panel").innerHTML = '';
-    Array.from(document.querySelectorAll("#alert-panel .alert")).forEach(function(e){
+    Array.from(document.querySelectorAll("#rubric-alert-panel .alert")).forEach(function(e){
         e.classList.add("hidden");
     });
     document.querySelector("#releaseToggle").classList.remove("invisible");

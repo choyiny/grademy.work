@@ -35,7 +35,7 @@ layout: default
 
         <!-- Main Content -->
         <div class="col-xs-9 col-xs-offset-1">
-            <div id="alert-panel">
+            <div id="rubric-alert-panel">
                 <div class="alert alert-success hidden">All rubrics have been filed.</div>
                 <div class="alert alert-info hidden">Some rubrics are incomplete</div>
                 <div class="alert alert-warning hidden" role="alert">Please sign in to the see the results of this grading scheme.</div>

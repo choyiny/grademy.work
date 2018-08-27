@@ -4,7 +4,7 @@ layout: default
 
 <div class="container">
     <h1>Create a new grading scheme</h1>
-    <div id="new-error" class="alert alert-danger" role="alert">Something went wrong!</div>
+    <div id="new-error" class="alert alert-danger hidden" role="alert">Something went wrong!</div>
     <form id="new-scheme-form">
         <button type="submit" class="btn btn-success">Submit</button>
         <div class="form-group">
