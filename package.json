@@ -1,0 +1,25 @@
+{
+  "name": "gradeMyWork",
+  "version": "1.0.0",
+  "description": "GradeMyWork node module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThierrySans/grademy.work.git"
+  },
+  "author": "Thierry Sans",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ThierrySans/grademy.work/issues"
+  },
+  "homepage": "https://github.com/ThierrySans/grademy.work#readme",
+  "dependencies": {
+    "firebase": "^5.4.1",
+    "js-yaml": "^3.12.0",
+    "password-prompt": "^1.0.7",
+    "prompt": "^1.0.0"
+  }
+}
