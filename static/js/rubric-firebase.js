@@ -30,13 +30,15 @@ var api = (function(){
     };
     
     function getPrivileges(user){
-        if (!user || !user.emailVerified) return Promise.resolve(null);
+        if (!user) return Promise.resolve(null);
         return firebase.database().ref('schemes/' + schemeID + '/privileges/' + user.email.replace(/\./g, '%2E')).once('value').then(function(snapshot){
             var privileges = {};
             snapshot.forEach(function(child) {
                 privileges[child.key] = child.val();
             });
             return privileges;
+        }).catch(function(err){
+            return {};
         });
     };
     
