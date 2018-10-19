@@ -123,12 +123,12 @@ var api = (function(){
     getRubrics().then(function(rubrics){
         getReleased().then(function(released){
             firebase.auth().onAuthStateChanged(function(user) {
-                getPrivileges(user).then(function(privileges){
-                    getSheetIDs(released, privileges).then(function(sheetIDs){                        
-                        var sheets = getSheets(rubrics, privileges, sheetIDs);
-                        notify({user, rubrics, released, privileges, sheets});
+                    getPrivileges(user).then(function(privileges){
+                        getSheetIDs(released, privileges).then(function(sheetIDs){                        
+                            var sheets = getSheets(rubrics, privileges, sheetIDs);
+                            notify({user, rubrics, released, privileges, sheets});
+                        });
                     });
-                });
             });
         });
     })

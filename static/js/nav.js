@@ -67,7 +67,7 @@ function signUp (e) {
 
 function init() {
   firebase.auth().onAuthStateChanged(function(user) {
-    if (user) {
+    if (user){
         document.getElementById('userEmail').innerHTML = user.email;
         document.getElementById('show-modal-button').style.display = "none";
         document.getElementById('user-button').style.display = "inline-block";

@@ -145,14 +145,28 @@ var updateView = function(){
         showAlert('info', "Please sign in to the see the results of this grading scheme.");
         return views.rubricOnlyView(data.rubrics);
     }else{
-        if (Object.keys(data.sheets).length == 0){
-            if (!data.released) showAlert('info', "This grading scheme has not been released yet.");
-            else showAlert('danger', "You do not have any access to this grading scheme. Please contact your instructor.");
-            return views.rubricOnlyView(data.rubrics);
+        if (!data.user.emailVerified){
+            showAlert('danger', "Your email is not verified. <a href='#' id='send-email-button'> Click here to send a verification email </a>");            
+            document.getElementById('send-email-button').addEventListener('click', function(e){
+                e.preventDefault();
+                var user = firebase.auth().currentUser;
+                if (!user) return showAlert('danger', 'no user logged'); 
+                user.sendEmailVerification().then(function() {
+                    showAlert('success', 'Email was sent, please check your email');
+                }).catch(function(error) {
+                   showAlert('danger', '[' + error.code + '] ' + error.message);
+                });
+            });
         }else{
-            document.querySelector('#viewToggle').classList.remove("invisible");
-            var view = document.querySelector("#viewToggle input[name='options']:checked").value;
-            views[view](data.rubrics, data.sheets);
+            if (Object.keys(data.sheets).length == 0){
+                if (!data.released) showAlert('info', "This grading scheme has not been released yet.");
+                else showAlert('danger', "You do not have any access to this grading scheme. Please contact your instructor.");
+                return views.rubricOnlyView(data.rubrics);
+            }else{
+                document.querySelector('#viewToggle').classList.remove("invisible");
+                var view = document.querySelector("#viewToggle input[name='options']:checked").value;
+                views[view](data.rubrics, data.sheets);
+            }
         }
     }
 }
