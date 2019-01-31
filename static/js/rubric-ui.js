@@ -176,15 +176,27 @@ var updateView = function(isReleased, rubrics, user, privileges, sheets){
         showAlert('info', "Please sign in to the see the results of this grading scheme.");
         return views.rubricOnlyView(rubrics);
     }else{
-        if (Object.keys(sheets).length == 0){
-            if (!isReleased) showAlert('info', "This grading scheme has not been released yet.");
-            else showAlert('danger', "You do not have any access to this grading scheme. Please contact your instructor.");
-            return views.rubricOnlyView(rubrics);
+        if (!user.emailVerified){
+            showAlert('danger', "Your email is not verified. <a href='#' id='send-email-button'> Click here to send a verification email </a>");            
+            document.getElementById('send-email-button').addEventListener('click', function(e){
+                e.preventDefault();
+                gmw.resetPassword(user.email).then(function() {
+                    showAlert('success', 'Email was sent, please check your email');
+                }).catch(function(error) {
+                   showAlert('danger', '[' + error.code + '] ' + error.message);
+                });
+            });
         }else{
-            return views.sheetView(rubrics, privileges, sheets);
-            // document.querySelector('#viewToggle').classList.remove("invisible");
-            // var view = document.querySelector("#viewToggle input[name='options']:checked").value;
-            // views[view](rubrics, sheets);
+            if (Object.keys(sheets).length == 0){
+                if (!isReleased) showAlert('info', "This grading scheme has not been released yet.");
+                else showAlert('danger', "You do not have any access to this grading scheme. Please contact your instructor.");
+                return views.rubricOnlyView(rubrics);
+            }else{
+                return views.sheetView(rubrics, privileges, sheets);
+                // document.querySelector('#viewToggle').classList.remove("invisible");
+                // var view = document.querySelector("#viewToggle input[name='options']:checked").value;
+                // views[view](rubrics, sheets);
+            }
         }
     }
 }

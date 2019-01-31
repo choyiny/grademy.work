@@ -52,7 +52,7 @@
     
     gmw.getCurrentUser = function(){
         var user = firebase.auth().currentUser;
-        if (user) return user.email; 
+        if (user) return user; 
         else return null;
     }
     
@@ -62,7 +62,7 @@
         listeners.push(f);
         firebase.auth().onAuthStateChanged(function(user) {
            Promise.all(listeners.map(async (f) => {
-               if (user) f(user.email); 
+               if (user) f(user); 
                else f(null);    
            }));
        });
@@ -98,12 +98,12 @@
     gmw.addScheme = async function(schemeID, rubrics, sheets){
         var schemes = await gmw.getSchemeIDs();
         if (schemes.indexOf(schemeID)>-1) return Promise.reject(new Error('scheme ' + schemeID + ' already exists'));
-        var user = await gmw.getCurrentUser();
+        var user = gmw.getCurrentUser();
         var privileges = {};
-        privileges[user.replace(/\./g, '%2E')] = {'admin': true};
+        privileges[user.email.replace(/\./g, '%2E')] = {'admin': true};
         var assign = function(index, role){
             return function(user){
-                var k = user.replace(/\./g, '%2E');
+                var k = user.email.replace(/\./g, '%2E');
                 if (!(k in privileges)) privileges[k] = {};
                 privileges[k][index] = role;
             };
@@ -141,9 +141,9 @@
     }
     
     Scheme.prototype.getPrivileges = async function(){  
-        var user = await gmw.getCurrentUser();
+        var user = gmw.getCurrentUser();
         if (!user) return Promise.reject(new Error('you must be logged in to see the privileges'));
-        return firebase.database().ref('schemes/' + this.schemeID + '/privileges/' + user.replace(/\./g, '%2E')).once('value').then(function(snapshot){
+        return firebase.database().ref('schemes/' + this.schemeID + '/privileges/' + user.email.replace(/\./g, '%2E')).once('value').then(function(snapshot){
             var privileges = {};
             var hasPrivileges = false;
             snapshot.forEach(function(child) {

@@ -57,7 +57,7 @@ function signUp (e) {
 function init() {
   grademywork.onUserChange(function(user) {
     if (user) {
-        document.getElementById('userEmail').innerHTML = user;
+        document.getElementById('userEmail').innerHTML = user.email;
         document.getElementById('show-modal-button').style.display = "none";
         document.getElementById('user-button').style.display = "inline-block";
     } else {
