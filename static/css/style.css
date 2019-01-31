@@ -22,7 +22,7 @@ body {
     margin-top:20px;
 }
 
-#loading-panel{
+#title-panel{
     margin: auto;
 }
 
@@ -105,4 +105,9 @@ body {
     overflow-y: auto;
     height: 100%;
     padding-top: 20px;
+}
+
+#main-panel{
+    position: relative;
+    overflow-y: scroll;
 }

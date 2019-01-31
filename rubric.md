@@ -41,7 +41,7 @@ layout: default
                 <div class="alert alert-warning hidden" role="alert">Please sign in to the see the results of this grading scheme.</div>
                 <div class="alert alert-danger hidden" role="alert">You do not have any access to this grading scheme. Please contact your instructor.</div>
             </div>
-            <div id="loading-panel" class="loader">Loading ...</div>
+            <div id="title-panel" class="position-sticky title">Loading ...</div>
             <div id="main-panel">
             </div>
             {% include footer.html %}
@@ -51,5 +51,4 @@ layout: default
 
 {% include scripts.html %}
 <script src="{{site.baseurl}}/static/js/rubric-templates.js"></script>
-<script src="{{site.baseurl}}/static/js/rubric-firebase.js"></script>
 <script src="{{site.baseurl}}/static/js/rubric-ui.js"></script>

@@ -1,14 +1,3 @@
-// Initialize Firebase
-var config = {
-    apiKey: "AIzaSyAP37fnOs4N5yhRhuCL7LsK0Ev2iv6Rh6I",
-    authDomain: "ugrade-cb832.firebaseapp.com",
-    databaseURL: "https://ugrade-cb832.firebaseio.com",
-    projectId: "ugrade-cb832",
-    storageBucket: "ugrade-cb832.appspot.com",
-    messagingSenderId: "1075414492997"
-};
-firebase.initializeApp(config);
-
 function hideLoginBox(){
     Array.from(document.querySelectorAll("#nav-alert-panel .alert")).forEach(function(e){
         e.classList.add("hidden");
@@ -27,7 +16,7 @@ function resetPassword (e){
     // retrieve
     var email = document.getElementById('email').value;
     // reset password
-    firebase.auth().sendPasswordResetEmail(email).then(function() {
+    grademywork.resetPassword(email).then(function() {
         showAlert('success', 'email was sent');
     }).catch(function(error) {
         showAlert('danger', '[' + error.code + '] ' + error.message);
@@ -36,7 +25,7 @@ function resetPassword (e){
 
 function signOut (e){
     e.preventDefault();
-    firebase.auth().signOut();
+    grademywork.signOut();
 }
 
 function signIn (e){
@@ -45,7 +34,7 @@ function signIn (e){
       var email = document.getElementById('email').value;
       var password = document.getElementById('password').value;
       // authenticate
-      firebase.auth().signInWithEmailAndPassword(email, password).then(function(res){
+      grademywork.signIn(email, password).then(function(res){
           hideLoginBox();
       }).catch(function(error) {
           showAlert('danger', '[' + error.code + '] ' + error.message);
@@ -58,17 +47,17 @@ function signUp (e) {
   var email = document.getElementById('email').value;
   var password = document.getElementById('password').value;
   // create
-  firebase.auth().createUserWithEmailAndPassword(email, password).then(function(res){
+  grademywork.signUp(email, password).then(function(res){
           hideLoginBox();
       }).catch(function(error) {
           showAlert('danger', '[' + error.code + '] ' + error.message);
       });
-}
+ }
 
 function init() {
-  firebase.auth().onAuthStateChanged(function(user) {
+  grademywork.onUserChange(function(user) {
     if (user) {
-        document.getElementById('userEmail').innerHTML = user.email;
+        document.getElementById('userEmail').innerHTML = user;
         document.getElementById('show-modal-button').style.display = "none";
         document.getElementById('user-button').style.display = "inline-block";
     } else {

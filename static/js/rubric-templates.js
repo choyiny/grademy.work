@@ -33,7 +33,8 @@ var templates = (function(){
     templates.SelectAll = function(rubricID, question, changeFn, updateFn, active){
         var disabled = (active)? '' : 'disabled';
         var form = document.createElement('form');
-        form.innerHTML = question.options.map(function(option, i){
+        form.innerHTML = Object.keys(question.options).map(function(optionID){
+            var option = question.options[optionID];
             return `<div class="checkbox ${disabled}">
                       <label>
                         <input type="checkbox" value="${i}" ${disabled}>${option}</input>
@@ -69,10 +70,11 @@ var templates = (function(){
     templates.SelectOne = function(rubricID, question, changeFn, updateFn, active){
         var disabled = (active)? '' : 'disabled';
         var form = document.createElement('form');
-        form.innerHTML = question.options.map(function(option, i){
+        form.innerHTML = Object.keys(question.options).map(function(optionID){
+            var option = question.options[optionID];
             return `<div class="radio">
                       <label>
-                        <input type="radio" name="optionsRadios" value="${i}" ${disabled}>${option}</input>
+                        <input type="radio" name="optionsRadios" value="${optionID}" ${disabled}>${option}</input>
                       </label>
                     </div>`;
         }).join('');

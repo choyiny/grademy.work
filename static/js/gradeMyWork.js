@@ -14,25 +14,35 @@
 
     firebase.initializeApp(config);
     
+    var normalize = function(data){
+        if (Array.isArray(data)) 
+               return data.reduce((acc, e, i) =>{
+                   acc[i] = normalize(e);
+                   return acc;
+               }, {});
+        else if ((typeof data === "object") && (data !== null)){ 
+               Object.keys(data).forEach(key =>{
+                   data[key] = normalize(data[key]);
+               });
+               return data;
+        } else return data; 
+    };
+    
     var gmw = {};
     
     gmw.close = function(){
         firebase.database().goOffline();
     }
-    
-    var User = function(email){
-        this.email = email;
-    }
 
-    gmw.signup = function(email, password){
+    gmw.signUp = function(email, password){
         return firebase.auth().createUserWithEmailAndPassword(email, password);
     }
     
-    gmw.signin = function(email, password){
+    gmw.signIn = function(email, password){
         return firebase.auth().signInWithEmailAndPassword(email, password);
     }
     
-    gmw.signout = function(){
+    gmw.signOut = function(){
         firebase.auth().signOut();
     }
     
@@ -54,20 +64,20 @@
            Promise.all(listeners.map(async (f) => {
                if (user) f(user.email); 
                else f(null);    
-           })).catch(function(e){
-               console.log(e)
-           }).then(function(){
-               gmw.onUserChange = function(f){
-                   listeners.push(f);
-                   f(gmw.getCurrentUser());
-               }
-           })
+           }));
        });
     }
+    
+    var Scheme = function(schemeID){
+        this.schemeID = schemeID;
+    }
         
-    gmw.getSchemeIDs = function(){
+    gmw.getSchemes = function(){
         return firebase.database().ref('schemes').once('value').then(function(snapshot){
-                return Object.keys(snapshot.val());
+                var schemes = normalize(snapshot.val());
+                return Object.keys(schemes).map(function(schemeID){
+                    return new Scheme(schemeID);
+                });
         });
     }
     
@@ -75,31 +85,13 @@
         return firebase.database().ref('schemes').child(id).remove();
     }
     
-    var Scheme = function(schemeID){
-        this.schemeID = schemeID;
-    }
-    
-    gmw.normalize = function(data){
-        if (Array.isArray(data)) 
-               return data.reduce((acc, e, i) =>{
-                   acc[i] = gmw.normalize(e);
-                   return acc;
-               }, {});
-        else if ((typeof data === "object") && (data !== null)){ 
-               Object.keys(data).forEach(key =>{
-                   data[key] = gmw.normalize(data[key]);
-               });
-               return data;
-        } else return data; 
-    };
-    
     gmw.getScheme = async function(schemeID){
         return new Scheme(schemeID);
     };
     
     Scheme.prototype.getRubrics = function(){
         return firebase.database().ref('schemes/' + this.schemeID + '/rubrics').once('value').then(function(snapshot){
-            return gmw.normalize(snapshot.val());
+            return normalize(snapshot.val());
         });  
     };
     
@@ -140,6 +132,14 @@
         });   
     };
     
+    Scheme.prototype.setReleased = function(value){
+        return firebase.database().ref('schemes/' + this.schemeID + '/released').set(value);
+    }
+    
+    Scheme.prototype.setPrivilege = async function(email, sheetId, privilege){
+        return firebase.database().ref('schemes/' + this.schemeID + '/privileges/' + email.replace(/\./g, '%2E') + '/' + sheetId).set(privilege);
+    }
+    
     Scheme.prototype.getPrivileges = async function(){  
         var user = await gmw.getCurrentUser();
         if (!user) return Promise.reject(new Error('you must be logged in to see the privileges'));
@@ -150,14 +150,22 @@
                 privileges[child.key] = child.val();
                 hasPrivileges = true;
             });
-            if(!hasPrivileges) return Promise.reject(new Error('you do not have any privilege on this scheme'));
+            if (!hasPrivileges) return Promise.reject(new Error('you do not have any privilege on this scheme'));
             return privileges;
         });
     }
     
-    Scheme.prototype.getSheetIDs = async function(){
-        var privileges = await this.getPrivileges();
-        var isReleased = await this.isReleased();
+    var Sheet = function(scheme, sheetID, sheet){
+        var self = this;
+        self.scheme = scheme;
+        self.sheetID = sheetID;
+        self.sheet = sheet;
+    }
+    
+    Scheme.prototype.getSheets = async function(){
+        var self = this;
+        var privileges = await self.getPrivileges();
+        var isReleased = await self.isReleased();
         var admin = ('admin' in privileges)? privileges['admin'] : false;
         if (!admin){
             var searchedPrivileges = (isReleased)? ['write','audit','read'] : ['write','audit'];
@@ -166,48 +174,37 @@
             });
             return Promise.resolve(sheetIDs);
         }
-        return firebase.database().ref('schemes/' +  this.schemeID + '/sheets').once('value').then(function(snapshot){
-                var sheetIDs = Object.keys(snapshot.val());
-                return sheetIDs;
+        return firebase.database().ref('schemes/' +  self.schemeID + '/sheets').once('value').then(function(snapshot){
+            var sheets = normalize(snapshot.val());
+            return Object.keys(sheets).map(function(sheetID){
+                return new Sheet(self, sheetID, sheets[sheetID].sheet);
+            });
         });
     };
     
-    var Sheet = function(scheme, sheetID){
-        var self = this;
-        self.scheme = scheme;
-        self.sheetID = sheetID;
-        self.listeners = [];
-        firebase.database().ref('schemes/' + self.scheme.schemeID + '/sheets/' + sheetID).on('value', function(snapshot){
-            Promise.all(self.listeners.map(async (f) => {
-                f(snapshot.val());
-            })).catch(function(e){
-                console.log(e)
-            });
-        });
-    }
-    
-    Scheme.prototype.getSheet = async function(sheetID){
-        var sheetIDs = await this.getSheetIDs();
-        if (sheetIDs.indexOf(sheetID)<0) return Promise.reject(new Error('you do not have access to sheet ' + sheetID));
-        return new Sheet(this, sheetID);
-    }
-    
-    Sheet.prototype.onChange = async function(f){
-        this.listeners.push(f);
-        f(await this.getAnswers());
-    }
+    // Scheme.prototype.getSheet = async function(sheetID){
+    //     var sheetIDs = Object.keys(await this.getSheets());
+    //     if (sheetIDs.indexOf(sheetID)<0) return Promise.reject(new Error('you do not have access to sheet ' + sheetID));
+    //     return new Sheet(this, sheetID, sheets[sheetID].sheet);
+    // }
     
     Sheet.prototype.getAnswers = async function(){
         return firebase.database().ref('schemes/' + this.scheme.schemeID + '/sheets/' + this.sheetID + '/rubrics').once('value').then(function(snapshot){
-            return gmw.normalize(snapshot.val());
+            return normalize(snapshot.val());
         });
     }
     
-    Sheet.prototype.setAnswer = function(rubricID, questionID, value){
+    Sheet.prototype.setAnswer = async function(rubricID, questionID, value){
        return firebase.database().ref('schemes/' + this.scheme.schemeID + '/sheets/' + this.sheetID + '/rubrics/' + rubricID + '/questions/' + questionID).set(value);
     }
     
+    Sheet.prototype.onAnswerChange = async function(rubricID, questionID, f){
+        firebase.database().ref('schemes/' + this.scheme.schemeID + '/sheets/' + this.sheetID + '/rubrics/' + rubricID + '/questions/' + questionID).on('value', function(snapshot){
+                f(snapshot.val());
+        });
+    }
+
     if (typeof exports === 'undefined') window['grademywork']=gmw;
-    module.exports = gmw;
+    else module.exports = gmw;
 
 }());
