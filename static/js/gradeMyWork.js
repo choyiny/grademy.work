@@ -167,19 +167,24 @@
         var privileges = await self.getPrivileges();
         var isReleased = await self.isReleased();
         var admin = ('admin' in privileges)? privileges['admin'] : false;
-        if (!admin){
+        if (admin){
+            return firebase.database().ref('schemes/' +  self.schemeID + '/sheets').once('value').then(function(snapshot){
+                var sheets = normalize(snapshot.val());
+                return Object.keys(sheets).map(function(sheetID){
+                    return new Sheet(self, sheetID, sheets[sheetID].sheet);
+                });
+            });
+        }else{
             var searchedPrivileges = (isReleased)? ['write','audit','read'] : ['write','audit'];
             var sheetIDs = Object.keys(privileges).filter(function(k){
-                return (['write','audit','read'].indexOf(privileges[k])>-1);
+                return (searchedPrivileges.indexOf(privileges[k])>-1);
             });
-            return Promise.resolve(sheetIDs);
+            return Promise.all(sheetIDs.map(function(sheetID){
+                return firebase.database().ref('schemes/' +  self.schemeID + '/sheets/' + sheetID).once('value').then(function(snapshot){
+                    return new Sheet(self, sheetID, snapshot.val().sheet);
+                });
+            }));
         }
-        return firebase.database().ref('schemes/' +  self.schemeID + '/sheets').once('value').then(function(snapshot){
-            var sheets = normalize(snapshot.val());
-            return Object.keys(sheets).map(function(sheetID){
-                return new Sheet(self, sheetID, sheets[sheetID].sheet);
-            });
-        });
     };
     
     // Scheme.prototype.getSheet = async function(sheetID){

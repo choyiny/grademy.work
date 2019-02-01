@@ -1,39 +1,39 @@
 - rubric: 'Rubric 1' 
   questions:
       
-      - question: 'Score for this rubric'
+      - caption: 'Score for this rubric'
         type: Points
         max: 20
         
-      - question: 'Quality of the work'
+      - caption: 'Quality of the work'
         type: SelectOne
         options: ['missing', 'bad', 'good', 'excellent']
 
-      - question: 'Any comment?'
+      - caption: 'Any comment?'
         type: Comment
         
 - rubric: 'Rubric 2' 
   questions:
       
-      - question: 'Score for this rubric'
+      - caption: 'Score for this rubric'
         type: Points
         max: 30
 
-      - question: 'What has been completed?'
+      - caption: 'What has been completed?'
         type: SelectAll
         options: ['Part #1', 'Part #2', 'Part #3', 'Part #4', 'Part #5']
 
-      - question: 'Any comment?'
+      - caption: 'Any comment?'
         type: Comment
         
 - rubric: 'Rubric 3' 
   questions:
 
-      - question: 'Score for this rubric'
+      - caption: 'Score for this rubric'
         type: Points
         max: 50
 
-      - question: 'Any comment?'
+      - caption: 'Any comment?'
         type: Comment
 
 

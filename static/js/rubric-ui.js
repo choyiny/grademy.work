@@ -226,11 +226,14 @@ window.addEventListener("load", async function(){
     });
     
     grademywork.onUserChange(async function(user) {
-        console.log(user);
        if (!user) return updateView(isReleased, rubrics);
-       var privileges = await scheme.getPrivileges();
-       var sheets = await scheme.getSheets();
-       return updateView(isReleased, rubrics, user, privileges, sheets);
+       try{
+           var privileges = await scheme.getPrivileges();
+           var sheets = await scheme.getSheets();
+           return updateView(isReleased, rubrics, user, privileges, sheets);
+       } catch (err){
+            showAlert('danger', err);     
+       };
     });
     
 //     Array.from(document.querySelectorAll("#viewToggle input[name='options']")).forEach(function(radio){
