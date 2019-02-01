@@ -44,6 +44,7 @@ let showSheet = function(rubrics, privileges, sheet){
             questionElement.innerHTML = `<h3>${question.caption}</h3>`;
             var active = (privileges[sheet.sheetID] === 'write' || privileges['admin'])            
             var updateFn = function(f){
+                console.log('update:', rubricID, questionID);
                 sheet.onAnswerChange(rubricID, questionID, f);
             };
             var changeFn = function(value){
@@ -81,6 +82,7 @@ views.sheetView = function (rubrics, privileges, sheets){
         var sheet = sheets.find(function(sheet){
             return sheetID == sheet.sheetID;
         });
+        if (!sheet) location.href = location.href.replace(location.hash,"") 
         showSheet(rubrics, privileges, sheet);
         window.scrollTo(0, 0);
     });
@@ -163,7 +165,7 @@ var showAlert = function(type, message){
 var updateView = function(isReleased, rubrics, user, privileges, sheets){
     document.getElementById('title-panel').innerHTML = '';
     document.getElementById("sidebar").innerHTML = '';
-    document.getElementById("main-panel");
+    document.getElementById("main-panel").innerHTML = '';
     Array.from(document.querySelectorAll("#rubric-alert-panel .alert")).forEach(function(e){
         e.classList.add("hidden");
     });
@@ -224,6 +226,7 @@ window.addEventListener("load", async function(){
     });
     
     grademywork.onUserChange(async function(user) {
+        console.log(user);
        if (!user) return updateView(isReleased, rubrics);
        var privileges = await scheme.getPrivileges();
        var sheets = await scheme.getSheets();

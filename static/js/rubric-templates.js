@@ -37,7 +37,7 @@ var templates = (function(){
             var option = question.options[optionID];
             return `<div class="checkbox ${disabled}">
                       <label>
-                        <input type="checkbox" value="${i}" ${disabled}>${option}</input>
+                        <input type="checkbox" value="${optionID}" ${disabled}>${option}</input>
                       </label>
                     </div>`;
         }).join('');
