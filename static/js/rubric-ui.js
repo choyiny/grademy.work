@@ -82,7 +82,7 @@ views.sheetView = function (rubrics, privileges, sheets){
         var sheet = sheets.find(function(sheet){
             return sheetID == sheet.sheetID;
         });
-        if (!sheet) location.href = location.href.replace(location.hash,"") 
+        // if (!sheet) location.href = location.href.replace(location.hash,"")
         showSheet(rubrics, privileges, sheet);
         window.scrollTo(0, 0);
     });
