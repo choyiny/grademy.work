@@ -34,7 +34,7 @@ layout: default
         </nav>
 
         <!-- Main Content -->
-        <div class="col-xs-9 col-xs-offset-1">
+        <div class="col-xs-8 col-xs-offset-1">
             <div id="title-panel" class="title" data-spy="affix" data-offset-top="1"><h1>Loading ...</h1></div>
             <div id="rubric-alert-panel">
                 <div class="alert alert-success hidden">All rubrics have been filed.</div>
