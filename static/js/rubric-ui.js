@@ -182,8 +182,11 @@ var updateView = function(isReleased, rubrics, user, privileges, sheets){
             showAlert('danger', "Your email is not verified. <a href='#' id='send-email-button'> Click here to send a verification email </a>");            
             document.getElementById('send-email-button').addEventListener('click', function(e){
                 e.preventDefault();
-                gmw.resetPassword(user.email).then(function() {
+                user.sendEmailVerification().then(function() {
                     showAlert('success', 'Email was sent, please check your email');
+                    setTimeout(function(){ 
+                        grademywork.signOut();
+                    }, 5000);
                 }).catch(function(error) {
                    showAlert('danger', '[' + error.code + '] ' + error.message);
                 });
