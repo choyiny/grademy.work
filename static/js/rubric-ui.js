@@ -162,7 +162,7 @@ var showAlert = function(type, message){
     e.innerHTML = message;
 };
 
-var updateView = function(isReleased, rubrics, user, privileges, sheets){
+var updateView = async function(scheme, rubrics, isReleased, user){
     document.getElementById('title-panel').innerHTML = '';
     document.getElementById("sidebar").innerHTML = '';
     document.getElementById("main-panel").innerHTML = '';
@@ -192,15 +192,21 @@ var updateView = function(isReleased, rubrics, user, privileges, sheets){
                 });
             });
         }else{
-            if (Object.keys(sheets).length == 0){
-                if (!isReleased) showAlert('info', "This grading scheme has not been released yet.");
-                else showAlert('danger', "You do not have any access to this grading scheme. Please contact your instructor.");
-                return views.rubricOnlyView(rubrics);
-            }else{
-                return views.sheetView(rubrics, privileges, sheets);
-                // document.querySelector('#viewToggle').classList.remove("invisible");
-                // var view = document.querySelector("#viewToggle input[name='options']:checked").value;
-                // views[view](rubrics, sheets);
+            try{
+                var privileges = await scheme.getPrivileges();
+                var sheets = await scheme.getSheets();
+                if (Object.keys(sheets).length == 0){
+                    if (!isReleased) showAlert('info', "This grading scheme has not been released yet.");
+                    else showAlert('danger', "You do not have any access to this grading scheme. Please contact your instructor.");
+                    return views.rubricOnlyView(rubrics);
+                }else{
+                    return views.sheetView(rubrics, privileges, sheets);
+                    // document.querySelector('#viewToggle').classList.remove("invisible");
+                    // var view = document.querySelector("#viewToggle input[name='options']:checked").value;
+                    // views[view](rubrics, sheets);
+                }
+            } catch (err) {
+                showAlert('danger', err);   
             }
         }
     }
@@ -229,14 +235,7 @@ window.addEventListener("load", async function(){
     });
     
     grademywork.onUserChange(async function(user) {
-       if (!user || user.emailVerified) return updateView(isReleased, rubrics);
-       try{
-           var privileges = await scheme.getPrivileges();
-           var sheets = await scheme.getSheets();
-           return updateView(isReleased, rubrics, user, privileges, sheets);
-       } catch (err){
-            showAlert('danger', err);     
-       };
+       return updateView(scheme, rubrics, isReleased, user);
     });
     
 //     Array.from(document.querySelectorAll("#viewToggle input[name='options']")).forEach(function(radio){
