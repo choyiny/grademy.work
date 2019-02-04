@@ -229,7 +229,7 @@ window.addEventListener("load", async function(){
     });
     
     grademywork.onUserChange(async function(user) {
-       if (!user) return updateView(isReleased, rubrics);
+       if (!user || user.emailVerified) return updateView(isReleased, rubrics);
        try{
            var privileges = await scheme.getPrivileges();
            var sheets = await scheme.getSheets();
