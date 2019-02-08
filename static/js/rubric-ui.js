@@ -207,7 +207,8 @@ var updateView = async function(scheme, rubrics, isReleased, user){
                     // views[view](rubrics, sheets);
                 }
             } catch (err) {
-                showAlert('danger', err);   
+                showAlert('danger', err); 
+                return views.rubricOnlyView(rubrics);
             }
         }
     }
