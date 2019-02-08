@@ -171,9 +171,9 @@ var updateView = async function(scheme, rubrics, isReleased, user){
     });
     document.querySelector("#releaseToggle").classList.remove("invisible");
     // document.querySelector('#viewToggle').classList.add("invisible");
-    var e = document.querySelector("#releaseToggle input");
-    e.checked = isReleased;
-    e.disabled = !(privileges && privileges['admin']);
+    var releaseButton = document.querySelector("#releaseToggle input");
+    releaseButton.checked = isReleased;
+    releaseButton.disabled = true;
     if (!user){
         showAlert('info', "Please sign in to the see the results of this grading scheme.");
         return views.rubricOnlyView(rubrics);
@@ -195,6 +195,7 @@ var updateView = async function(scheme, rubrics, isReleased, user){
             try{
                 var privileges = await scheme.getPrivileges();
                 var sheets = await scheme.getSheets();
+                releaseButton.disabled = !(privileges && privileges['admin']);
                 if (Object.keys(sheets).length == 0){
                     if (!isReleased) showAlert('info', "This grading scheme has not been released yet.");
                     else showAlert('danger', "You do not have any access to this grading scheme. Please contact your instructor.");
@@ -228,11 +229,11 @@ window.addEventListener("load", async function(){
     var rubrics = await scheme.getRubrics();
     var isReleased = await scheme.isReleased();
     
-    document.querySelector("#releaseToggle input").addEventListener('change', function(){
-        var e = document.querySelector("#releaseToggle input");
-        var value = e.checked;
-        scheme.setReleased(value);
-    });
+    // document.querySelector("#releaseToggle input").addEventListener('change', function(){
+    //     var e = document.querySelector("#releaseToggle input");
+    //     var value = e.checked;
+    //     scheme.setReleased(value);
+    // });
     
     grademywork.onUserChange(async function(user) {
        return updateView(scheme, rubrics, isReleased, user);
