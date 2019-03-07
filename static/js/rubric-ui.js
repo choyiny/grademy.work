@@ -230,11 +230,11 @@ window.addEventListener("load", async function(){
     var rubrics = await scheme.getRubrics();
     var isReleased = await scheme.isReleased();
     
-    // document.querySelector("#releaseToggle input").addEventListener('change', function(){
-    //     var e = document.querySelector("#releaseToggle input");
-    //     var value = e.checked;
-    //     scheme.setReleased(value);
-    // });
+    document.querySelector("#releaseToggle input").addEventListener('change', function(){
+        var e = document.querySelector("#releaseToggle input");
+        var value = e.checked;
+        scheme.setReleased(value);
+    });
     
     grademywork.onUserChange(async function(user) {
        return updateView(scheme, rubrics, isReleased, user);
